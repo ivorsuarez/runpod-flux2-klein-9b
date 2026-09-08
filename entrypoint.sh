@@ -33,6 +33,19 @@ download "black-forest-labs/FLUX.2-small-decoder" "full_encoder_small_decoder.sa
 download "timothy692/1x-ITF-SkinDiffDetail-Lite-v1" "1x-ITF-SkinDiffDetail-Lite-v1.pth" \
   "/ComfyUI/models/upscale_models/1x-ITF-SkinDiffDetail-Lite-v1.pth"
 
+# --- PuLID-Flux2 (identity injection) ---------------------------------------
+mkdir -p /ComfyUI/models/pulid /ComfyUI/models/insightface/models/antelopev2
+
+download "Fayens/Pulid-Flux2" "pulid_flux2_klein_v2.safetensors" \
+  "/ComfyUI/models/pulid/pulid_flux2_klein_v2.safetensors"
+
+# InsightFace's FaceAnalysis loader expects every .onnx in the pack; it is not
+# a single "the model" file, so each one is fetched (and skipped) individually.
+for onnx in 1k3d68 2d106det genderage glintr100 scrfd_10g_bnkps; do
+  download "MonsterMMORPG/InstantID_Models" "models/antelopev2/${onnx}.onnx" \
+    "/ComfyUI/models/insightface/models/antelopev2/${onnx}.onnx"
+done
+
 echo "Starting ComfyUI..."
 cd /ComfyUI
 python3 main.py --listen 0.0.0.0 --port 8188 &
