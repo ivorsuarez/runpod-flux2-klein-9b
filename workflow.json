@@ -1,164 +1,21 @@
 {
-  "9": {
+  "75:70": {
     "inputs": {
-      "filename_prefix": "Flux2-Klein",
-      "images": [
-        "75:65",
-        0
-      ]
+      "unet_name": "flux-2-klein-9b-fp8.safetensors",
+      "weight_dtype": "default"
     },
-    "class_type": "SaveImage",
-    "_meta": {
-      "title": "Save Image"
-    }
+    "class_type": "UNETLoader",
+    "_meta": { "title": "Load Diffusion Model" }
   },
-  "75:61": {
+  "100": {
     "inputs": {
-      "sampler_name": "euler"
+      "model": ["75:70", 0],
+      "nag_scale": 5.0,
+      "nag_alpha": 0.5,
+      "nag_tau": 1.5
     },
-    "class_type": "KSamplerSelect",
-    "_meta": {
-      "title": "KSamplerSelect"
-    }
-  },
-  "75:62": {
-    "inputs": {
-      "steps": 4,
-      "width": [
-        "75:68",
-        0
-      ],
-      "height": [
-        "75:69",
-        0
-      ]
-    },
-    "class_type": "Flux2Scheduler",
-    "_meta": {
-      "title": "Flux2Scheduler"
-    }
-  },
-  "75:63": {
-    "inputs": {
-      "cfg": 1.0,
-      "model": [
-        "75:70",
-        0
-      ],
-      "positive": [
-        "75:74",
-        0
-      ],
-      "negative": [
-        "75:67",
-        0
-      ]
-    },
-    "class_type": "CFGGuider",
-    "_meta": {
-      "title": "CFG Guider"
-    }
-  },
-  "75:64": {
-    "inputs": {
-      "noise": [
-        "75:73",
-        0
-      ],
-      "guider": [
-        "75:63",
-        0
-      ],
-      "sampler": [
-        "75:61",
-        0
-      ],
-      "sigmas": [
-        "75:62",
-        0
-      ],
-      "latent_image": [
-        "75:66",
-        0
-      ]
-    },
-    "class_type": "SamplerCustomAdvanced",
-    "_meta": {
-      "title": "SamplerCustomAdvanced"
-    }
-  },
-  "75:65": {
-    "inputs": {
-      "samples": [
-        "75:64",
-        0
-      ],
-      "vae": [
-        "75:72",
-        0
-      ]
-    },
-    "class_type": "VAEDecode",
-    "_meta": {
-      "title": "VAE Decode"
-    }
-  },
-  "75:66": {
-    "inputs": {
-      "width": [
-        "75:68",
-        0
-      ],
-      "height": [
-        "75:69",
-        0
-      ],
-      "batch_size": 1
-    },
-    "class_type": "EmptyFlux2LatentImage",
-    "_meta": {
-      "title": "Empty Flux 2 Latent"
-    }
-  },
-  "75:67": {
-    "inputs": {
-      "text": "",
-      "clip": [
-        "75:71",
-        0
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP Text Encode (Negative Prompt)"
-    }
-  },
-  "75:68": {
-    "inputs": {
-      "value": 1024
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": {
-      "title": "Width"
-    }
-  },
-  "75:69": {
-    "inputs": {
-      "value": 1024
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": {
-      "title": "Height"
-    }
-  },
-  "75:73": {
-    "inputs": {
-      "noise_seed": 42
-    },
-    "class_type": "RandomNoise",
-    "_meta": {
-      "title": "RandomNoise"
-    }
+    "class_type": "NAGuidance",
+    "_meta": { "title": "Normalized Attention Guidance (enables negative prompt at cfg 1)" }
   },
   "75:71": {
     "inputs": {
@@ -167,40 +24,179 @@
       "device": "default"
     },
     "class_type": "CLIPLoader",
-    "_meta": {
-      "title": "Load CLIP"
-    }
+    "_meta": { "title": "Load CLIP" }
   },
   "75:72": {
-    "inputs": {
-      "vae_name": "full_encoder_small_decoder.safetensors"
-    },
+    "inputs": { "vae_name": "full_encoder_small_decoder.safetensors" },
     "class_type": "VAELoader",
-    "_meta": {
-      "title": "Load VAE"
-    }
+    "_meta": { "title": "Load VAE" }
   },
   "75:74": {
     "inputs": {
-      "text": "Olivia, a young woman, standing on a beach at golden hour, ocean waves in the background, natural lighting, photorealistic",
-      "clip": [
-        "75:71",
-        0
-      ]
+      "text": "a photograph",
+      "clip": ["75:71", 0]
     },
     "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP Text Encode (Positive Prompt)"
-    }
+    "_meta": { "title": "CLIP Text Encode (Positive Prompt)" }
   },
-  "75:70": {
+  "75:67": {
     "inputs": {
-      "unet_name": "flux-2-klein-9b-fp8.safetensors",
-      "weight_dtype": "default"
+      "text": "plastic skin, airbrushed, waxy, smooth skin, cgi, 3d render, illustration, painting, oversaturated, overexposed, blurry, low detail",
+      "clip": ["75:71", 0]
     },
-    "class_type": "UNETLoader",
-    "_meta": {
-      "title": "Load Diffusion Model"
-    }
+    "class_type": "CLIPTextEncode",
+    "_meta": { "title": "CLIP Text Encode (Negative Prompt)" }
+  },
+  "75:63": {
+    "inputs": {
+      "cfg": 1.0,
+      "model": ["100", 0],
+      "positive": ["75:74", 0],
+      "negative": ["75:67", 0]
+    },
+    "class_type": "CFGGuider",
+    "_meta": { "title": "CFG Guider" }
+  },
+  "75:68": {
+    "inputs": { "value": 1024 },
+    "class_type": "PrimitiveInt",
+    "_meta": { "title": "Width" }
+  },
+  "75:69": {
+    "inputs": { "value": 1024 },
+    "class_type": "PrimitiveInt",
+    "_meta": { "title": "Height" }
+  },
+  "75:66": {
+    "inputs": {
+      "width": ["75:68", 0],
+      "height": ["75:69", 0],
+      "batch_size": 1
+    },
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": { "title": "Empty Flux 2 Latent" }
+  },
+  "75:62": {
+    "inputs": {
+      "steps": 4,
+      "width": ["75:68", 0],
+      "height": ["75:69", 0]
+    },
+    "class_type": "Flux2Scheduler",
+    "_meta": { "title": "Flux2Scheduler (base pass)" }
+  },
+  "75:61": {
+    "inputs": { "sampler_name": "euler" },
+    "class_type": "KSamplerSelect",
+    "_meta": { "title": "KSamplerSelect (base pass)" }
+  },
+  "75:73": {
+    "inputs": { "noise_seed": 42 },
+    "class_type": "RandomNoise",
+    "_meta": { "title": "RandomNoise (base pass)" }
+  },
+  "75:64": {
+    "inputs": {
+      "noise": ["75:73", 0],
+      "guider": ["75:63", 0],
+      "sampler": ["75:61", 0],
+      "sigmas": ["75:62", 0],
+      "latent_image": ["75:66", 0]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": { "title": "SamplerCustomAdvanced (base pass)" }
+  },
+  "75:65": {
+    "inputs": {
+      "samples": ["75:64", 0],
+      "vae": ["75:72", 0]
+    },
+    "class_type": "VAEDecode",
+    "_meta": { "title": "VAE Decode (base image)" }
+  },
+
+  "101": {
+    "inputs": {
+      "image": ["75:65", 0],
+      "upscale_method": "lanczos",
+      "width": 1536,
+      "height": 1536,
+      "crop": "disabled"
+    },
+    "class_type": "ImageScale",
+    "_meta": { "title": "Upscale before refine" }
+  },
+  "102": {
+    "inputs": {
+      "pixels": ["101", 0],
+      "vae": ["75:72", 0]
+    },
+    "class_type": "VAEEncode",
+    "_meta": { "title": "VAE Encode (refine input)" }
+  },
+  "103": {
+    "inputs": {
+      "model": ["100", 0],
+      "scheduler": "sgm_uniform",
+      "steps": 8,
+      "denoise": 0.45
+    },
+    "class_type": "BasicScheduler",
+    "_meta": { "title": "BasicScheduler (refine, denoise controllable)" }
+  },
+  "104": {
+    "inputs": {
+      "eta": 1.0,
+      "s_noise": 1.0
+    },
+    "class_type": "SamplerEulerAncestralCFGPP",
+    "_meta": { "title": "SamplerEulerAncestralCFG++ (detail)" }
+  },
+  "105": {
+    "inputs": { "noise_seed": 43 },
+    "class_type": "RandomNoise",
+    "_meta": { "title": "RandomNoise (refine pass)" }
+  },
+  "106": {
+    "inputs": {
+      "noise": ["105", 0],
+      "guider": ["75:63", 0],
+      "sampler": ["104", 0],
+      "sigmas": ["103", 0],
+      "latent_image": ["102", 0]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": { "title": "SamplerCustomAdvanced (refine pass)" }
+  },
+  "107": {
+    "inputs": {
+      "samples": ["106", 0],
+      "vae": ["75:72", 0]
+    },
+    "class_type": "VAEDecode",
+    "_meta": { "title": "VAE Decode (refined image)" }
+  },
+
+  "108": {
+    "inputs": { "model_name": "1x-ITF-SkinDiffDetail-Lite-v1.pth" },
+    "class_type": "UpscaleModelLoader",
+    "_meta": { "title": "Load skin detail model (1x)" }
+  },
+  "109": {
+    "inputs": {
+      "upscale_model": ["108", 0],
+      "image": ["107", 0]
+    },
+    "class_type": "ImageUpscaleWithModel",
+    "_meta": { "title": "Skin micro-detail pass" }
+  },
+
+  "9": {
+    "inputs": {
+      "filename_prefix": "Flux2-Klein-HyperReal",
+      "images": ["109", 0]
+    },
+    "class_type": "SaveImage",
+    "_meta": { "title": "Save Image" }
   }
 }

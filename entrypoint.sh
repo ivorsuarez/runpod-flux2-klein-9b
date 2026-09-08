@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-mkdir -p /ComfyUI/models/diffusion_models /ComfyUI/models/text_encoders /ComfyUI/models/vae
+mkdir -p /ComfyUI/models/diffusion_models /ComfyUI/models/text_encoders /ComfyUI/models/vae /ComfyUI/models/upscale_models
 
 download() {
   local repo="$1"
@@ -28,6 +28,10 @@ download "Comfy-Org/flux2-klein-9B" "split_files/text_encoders/qwen_3_8b_fp8mixe
 
 download "black-forest-labs/FLUX.2-small-decoder" "full_encoder_small_decoder.safetensors" \
   "/ComfyUI/models/vae/full_encoder_small_decoder.safetensors"
+
+# 1x skin-detail model: adds pores/micro-texture without changing resolution.
+download "timothy692/1x-ITF-SkinDiffDetail-Lite-v1" "1x-ITF-SkinDiffDetail-Lite-v1.pth" \
+  "/ComfyUI/models/upscale_models/1x-ITF-SkinDiffDetail-Lite-v1.pth"
 
 echo "Starting ComfyUI..."
 cd /ComfyUI
