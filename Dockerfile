@@ -10,7 +10,7 @@ RUN git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git /ComfyUI
 WORKDIR /ComfyUI
 RUN pip install --break-system-packages --no-cache-dir -r requirements.txt
 
-RUN pip install --break-system-packages --no-cache-dir runpod websocket-client "huggingface_hub[hf_transfer]"
+RUN pip install --break-system-packages --ignore-installed --no-cache-dir runpod websocket-client "huggingface_hub[hf_transfer]"
 
 WORKDIR /
 COPY workflow.json /workflow.json
