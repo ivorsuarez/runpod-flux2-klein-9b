@@ -17,6 +17,17 @@ RUN grep -vE '^(torch|torchvision|torchaudio)\s*$' requirements.txt > /tmp/reqs.
 
 RUN pip install --break-system-packages --ignore-installed --no-cache-dir runpod websocket-client "huggingface_hub[hf_transfer]"
 
+# PuLID-Flux2: identity injection from a reference photo, without LoRA training
+# or the ReferenceLatent edit-mode path (which forces square output and loses
+# likeness on refine — see olivia_terraza.png / olivia_v2.png). Experimental,
+# single-maintainer project; kept isolated in its own custom_nodes dir so it
+# can be ripped out cleanly if it doesn't hold up.
+RUN git clone --depth 1 https://github.com/iFayens/ComfyUI-PuLID-Flux2.git \
+      /ComfyUI/custom_nodes/ComfyUI-PuLID-Flux2 \
+    && pip install --break-system-packages --no-cache-dir \
+        insightface onnxruntime-gpu open-clip-torch ml_dtypes==0.3.2 \
+    && rm -rf /root/.cache/pip
+
 WORKDIR /
 COPY workflow.json /workflow.json
 COPY workflow_edit.json /workflow_edit.json
