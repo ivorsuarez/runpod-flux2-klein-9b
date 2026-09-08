@@ -8,7 +8,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends git curl && rm 
 RUN git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git /ComfyUI
 
 WORKDIR /ComfyUI
-RUN pip install --break-system-packages --no-cache-dir -r requirements.txt
+# The base image already ships torch 2.8.0+cu128; ComfyUI's requirements list
+# torch/torchvision/torchaudio, and letting pip reinstall them added a ~2 GB
+# layer for no gain. Image pull is the dominant cold-start cost, so strip them.
+RUN grep -vE '^(torch|torchvision|torchaudio)\s*$' requirements.txt > /tmp/reqs.txt \
+    && pip install --break-system-packages --no-cache-dir -r /tmp/reqs.txt \
+    && rm -rf /root/.cache/pip
 
 RUN pip install --break-system-packages --ignore-installed --no-cache-dir runpod websocket-client "huggingface_hub[hf_transfer]"
 
