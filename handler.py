@@ -57,7 +57,17 @@ def load_workflow(path):
 def queue_prompt(prompt):
     url = f"http://{server_address}:8188/prompt"
     data = json.dumps({"prompt": prompt, "client_id": client_id}).encode("utf-8")
-    return json.loads(urllib.request.urlopen(urllib.request.Request(url, data=data)).read())
+    try:
+        return json.loads(urllib.request.urlopen(urllib.request.Request(url, data=data)).read())
+    except urllib.error.HTTPError as exc:
+        # ComfyUI puts the actual validation failure (which node, which input)
+        # in the response body; without it a 400 says nothing useful.
+        try:
+            detail = exc.read().decode("utf-8", "replace")
+        except Exception:
+            detail = "<no body>"
+        logger.error("ComfyUI rejected the prompt (%s): %s", exc.code, detail)
+        raise RuntimeError(f"ComfyUI rejected the prompt ({exc.code}): {detail}") from None
 
 
 def get_image(filename, subfolder, folder_type):
@@ -109,6 +119,7 @@ def upload_image(data, filename):
     name = resp["name"]
     if resp.get("subfolder"):
         name = f"{resp['subfolder']}/{name}"
+    logger.info("Uploaded reference -> %s (%d bytes)", name, len(data))
     return name
 
 
@@ -309,6 +320,9 @@ def handler(job):
     ws.connect(f"ws://{server_address}:8188/ws?clientId={client_id}")
     try:
         images = get_images(ws, prompt)
+    except Exception as exc:
+        logger.exception("Generation failed")
+        return {"error": str(exc)}
     finally:
         ws.close()
 
