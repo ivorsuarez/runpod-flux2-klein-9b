@@ -297,22 +297,60 @@ def build_t2i(job_input, seed):
     return prompt
 
 
+def substitute_refs(obj, names):
+    """Replace __REF_0__, __REF_1__… placeholders with uploaded filenames."""
+    if isinstance(obj, str):
+        for i, name in enumerate(names):
+            obj = obj.replace(f"__REF_{i}__", name)
+        return obj
+    if isinstance(obj, dict):
+        return {k: substitute_refs(v, names) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [substitute_refs(v, names) for v in obj]
+    return obj
+
+
+def build_from_payload(job_input):
+    """Run a caller-supplied graph verbatim.
+
+    Workflow JSON is a few KB but lived inside a ~11 GB image, so every graph
+    tweak meant a full rebuild and a cold start everywhere. Accepting the graph
+    per request decouples the two: the image only changes when dependencies do.
+    """
+    prompt = job_input["workflow"]
+    if not isinstance(prompt, dict) or not prompt:
+        raise ValueError("'workflow' must be a non-empty API-format graph object")
+
+    names = []
+    for ref in job_input.get("images") or []:
+        names.append(upload_image(fetch_bytes(ref), f"ref_{uuid.uuid4().hex}.png"))
+    if names:
+        prompt = substitute_refs(prompt, names)
+        logger.info("Substituted %d reference placeholder(s)", len(names))
+    return prompt
+
+
 def handler(job):
     job_input = job.get("input", {})
     n_refs = len(job_input.get("images") or [])
+    mode = "custom" if "workflow" in job_input else ("edit" if n_refs else "t2i")
     logger.info(
         "Received job: mode=%s refs=%d prompt=%.80s",
-        "edit" if n_refs else "t2i", n_refs, job_input.get("prompt", ""),
+        mode, n_refs, job_input.get("prompt", ""),
     )
 
-    if "prompt" not in job_input:
-        return {"error": "'prompt' is required"}
+    custom = "workflow" in job_input
+    if not custom and "prompt" not in job_input:
+        return {"error": "'prompt' is required (or pass a full 'workflow')"}
 
     seed = int(job_input.get("seed", 0))
     wait_for_server()
 
     try:
-        prompt = build_edit(job_input, seed) if n_refs else build_t2i(job_input, seed)
+        if custom:
+            prompt = build_from_payload(job_input)
+        else:
+            prompt = build_edit(job_input, seed) if n_refs else build_t2i(job_input, seed)
     except Exception as exc:
         logger.exception("Failed to build the workflow")
         return {"error": f"workflow build failed: {exc}"}
