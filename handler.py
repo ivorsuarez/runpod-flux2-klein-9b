@@ -226,6 +226,7 @@ def build_edit(job_input, seed):
                     "image": [load_id, 0],
                     "upscale_method": "nearest-exact",
                     "megapixels": megapixels,
+                    "resolution_steps": 1,
                 },
                 "class_type": "ImageScaleToTotalPixels",
             }

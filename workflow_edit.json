@@ -21,7 +21,12 @@
     "_meta": { "title": "Reference image 1" }
   },
   "11": {
-    "inputs": { "image": ["10", 0], "upscale_method": "nearest-exact", "megapixels": 1.0 },
+    "inputs": {
+      "image": ["10", 0],
+      "upscale_method": "nearest-exact",
+      "megapixels": 1.0,
+      "resolution_steps": 1
+    },
     "class_type": "ImageScaleToTotalPixels",
     "_meta": { "title": "Normalise reference to 1MP" }
   },
