@@ -1,0 +1,160 @@
+{
+  "1": {
+    "inputs": { "unet_name": "flux-2-klein-9b-fp8.safetensors", "weight_dtype": "default" },
+    "class_type": "UNETLoader",
+    "_meta": { "title": "Load Diffusion Model" }
+  },
+  "2": {
+    "inputs": { "clip_name": "qwen_3_8b_fp8mixed.safetensors", "type": "flux2", "device": "default" },
+    "class_type": "CLIPLoader",
+    "_meta": { "title": "Load CLIP" }
+  },
+  "3": {
+    "inputs": { "vae_name": "full_encoder_small_decoder.safetensors" },
+    "class_type": "VAELoader",
+    "_meta": { "title": "Load VAE" }
+  },
+
+  "10": {
+    "inputs": { "image": "reference.png" },
+    "class_type": "LoadImage",
+    "_meta": { "title": "Reference image 1" }
+  },
+  "11": {
+    "inputs": { "image": ["10", 0], "upscale_method": "nearest-exact", "megapixels": 1.0 },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": { "title": "Normalise reference to 1MP" }
+  },
+  "12": {
+    "inputs": { "pixels": ["11", 0], "vae": ["3", 0] },
+    "class_type": "VAEEncode",
+    "_meta": { "title": "Encode reference 1" }
+  },
+
+  "20": {
+    "inputs": { "text": "a photograph", "clip": ["2", 0] },
+    "class_type": "CLIPTextEncode",
+    "_meta": { "title": "Prompt" }
+  },
+  "21": {
+    "inputs": { "conditioning": ["20", 0] },
+    "class_type": "ConditioningZeroOut",
+    "_meta": { "title": "Negative (zeroed, as per official edit template)" }
+  },
+  "30": {
+    "inputs": { "conditioning": ["20", 0], "latent": ["12", 0] },
+    "class_type": "ReferenceLatent",
+    "_meta": { "title": "Inject reference into positive" }
+  },
+  "31": {
+    "inputs": { "conditioning": ["21", 0], "latent": ["12", 0] },
+    "class_type": "ReferenceLatent",
+    "_meta": { "title": "Inject reference into negative" }
+  },
+
+  "40": {
+    "inputs": { "image": ["11", 0] },
+    "class_type": "GetImageSize",
+    "_meta": { "title": "Output size follows the reference" }
+  },
+  "41": {
+    "inputs": { "width": ["40", 0], "height": ["40", 1], "batch_size": 1 },
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": { "title": "Empty Flux 2 Latent" }
+  },
+  "42": {
+    "inputs": { "steps": 4, "width": ["40", 0], "height": ["40", 1] },
+    "class_type": "Flux2Scheduler",
+    "_meta": { "title": "Flux2Scheduler" }
+  },
+  "43": {
+    "inputs": { "sampler_name": "euler" },
+    "class_type": "KSamplerSelect",
+    "_meta": { "title": "KSamplerSelect" }
+  },
+  "44": {
+    "inputs": { "noise_seed": 42 },
+    "class_type": "RandomNoise",
+    "_meta": { "title": "RandomNoise" }
+  },
+  "45": {
+    "inputs": { "cfg": 1.0, "model": ["1", 0], "positive": ["30", 0], "negative": ["31", 0] },
+    "class_type": "CFGGuider",
+    "_meta": { "title": "CFG Guider" }
+  },
+  "46": {
+    "inputs": {
+      "noise": ["44", 0],
+      "guider": ["45", 0],
+      "sampler": ["43", 0],
+      "sigmas": ["42", 0],
+      "latent_image": ["41", 0]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": { "title": "SamplerCustomAdvanced" }
+  },
+  "47": {
+    "inputs": { "samples": ["46", 0], "vae": ["3", 0] },
+    "class_type": "VAEDecode",
+    "_meta": { "title": "VAE Decode (edit result)" }
+  },
+
+  "50": {
+    "inputs": { "image": ["47", 0], "upscale_method": "lanczos", "width": 1536, "height": 1536, "crop": "disabled" },
+    "class_type": "ImageScale",
+    "_meta": { "title": "Upscale before refine" }
+  },
+  "51": {
+    "inputs": { "pixels": ["50", 0], "vae": ["3", 0] },
+    "class_type": "VAEEncode",
+    "_meta": { "title": "VAE Encode (refine input)" }
+  },
+  "52": {
+    "inputs": { "model": ["1", 0], "scheduler": "sgm_uniform", "steps": 8, "denoise": 0.3 },
+    "class_type": "BasicScheduler",
+    "_meta": { "title": "BasicScheduler (refine)" }
+  },
+  "53": {
+    "inputs": { "eta": 1.0, "s_noise": 1.0 },
+    "class_type": "SamplerEulerAncestralCFGPP",
+    "_meta": { "title": "SamplerEulerAncestralCFG++" }
+  },
+  "54": {
+    "inputs": { "noise_seed": 43 },
+    "class_type": "RandomNoise",
+    "_meta": { "title": "RandomNoise (refine)" }
+  },
+  "55": {
+    "inputs": {
+      "noise": ["54", 0],
+      "guider": ["45", 0],
+      "sampler": ["53", 0],
+      "sigmas": ["52", 0],
+      "latent_image": ["51", 0]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": { "title": "SamplerCustomAdvanced (refine)" }
+  },
+  "56": {
+    "inputs": { "samples": ["55", 0], "vae": ["3", 0] },
+    "class_type": "VAEDecode",
+    "_meta": { "title": "VAE Decode (refined)" }
+  },
+
+  "60": {
+    "inputs": { "model_name": "1x-ITF-SkinDiffDetail-Lite-v1.pth" },
+    "class_type": "UpscaleModelLoader",
+    "_meta": { "title": "Load skin detail model" }
+  },
+  "61": {
+    "inputs": { "upscale_model": ["60", 0], "image": ["56", 0] },
+    "class_type": "ImageUpscaleWithModel",
+    "_meta": { "title": "Skin micro-detail pass" }
+  },
+
+  "9": {
+    "inputs": { "filename_prefix": "Flux2-Klein-Edit", "images": ["61", 0] },
+    "class_type": "SaveImage",
+    "_meta": { "title": "Save Image" }
+  }
+}

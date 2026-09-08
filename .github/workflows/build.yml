@@ -21,9 +21,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Also tagged with the commit SHA: RunPod caches by tag, so deploying
+      # ":latest" can silently keep serving a stale image. Point the endpoint
+      # at the SHA tag (or the digest) to guarantee the new build is used.
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/flux2-klein-9b:latest
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/flux2-klein-9b:latest
+            ghcr.io/${{ github.repository_owner }}/flux2-klein-9b:${{ github.sha }}
+
+      - name: Show image reference to deploy
+        run: |
+          echo "Deploy this exact image on RunPod:"
+          echo "  ghcr.io/${{ github.repository_owner }}/flux2-klein-9b:${{ github.sha }}"
+          echo "  digest: ${{ steps.build.outputs.digest }}"

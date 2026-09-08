@@ -14,6 +14,7 @@ RUN pip install --break-system-packages --ignore-installed --no-cache-dir runpod
 
 WORKDIR /
 COPY workflow.json /workflow.json
+COPY workflow_edit.json /workflow_edit.json
 COPY handler.py /handler.py
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
