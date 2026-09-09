@@ -29,8 +29,13 @@ RUN git clone --depth 1 https://github.com/iFayens/ComfyUI-PuLID-Flux2.git \
     && rm -rf /root/.cache/pip
 # ml_dtypes==0.3.2 was pinned first and broke: it's built against NumPy 1.x
 # ABI while the base image ships NumPy 2.1.2, so `import onnx` (pulled in by
-# insightface) died with "numpy.core.umath failed to import". >=0.5.0 supports
-# NumPy 2.
+# insightface) died with "numpy.core.umath failed to import". Bumping to
+# >=0.5.0 alone didn't fix it (still failed identically) — numpy itself was
+# left in a mixed state (2.1.2 metadata, stale compiled _multiarray_umath)
+# by the layered installs above. Force a clean reinstall of just numpy last,
+# with no cache, so its metadata and compiled extension actually match.
+RUN pip install --break-system-packages --no-cache-dir --force-reinstall --no-deps numpy \
+    && rm -rf /root/.cache/pip
 
 WORKDIR /
 COPY workflow.json /workflow.json
