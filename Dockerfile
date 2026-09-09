@@ -25,8 +25,12 @@ RUN pip install --break-system-packages --ignore-installed --no-cache-dir runpod
 RUN git clone --depth 1 https://github.com/iFayens/ComfyUI-PuLID-Flux2.git \
       /ComfyUI/custom_nodes/ComfyUI-PuLID-Flux2 \
     && pip install --break-system-packages --no-cache-dir \
-        insightface onnxruntime-gpu open-clip-torch ml_dtypes==0.3.2 \
+        insightface onnxruntime-gpu open-clip-torch "ml_dtypes>=0.5.0" \
     && rm -rf /root/.cache/pip
+# ml_dtypes==0.3.2 was pinned first and broke: it's built against NumPy 1.x
+# ABI while the base image ships NumPy 2.1.2, so `import onnx` (pulled in by
+# insightface) died with "numpy.core.umath failed to import". >=0.5.0 supports
+# NumPy 2.
 
 WORKDIR /
 COPY workflow.json /workflow.json
